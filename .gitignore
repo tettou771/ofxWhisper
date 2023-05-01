@@ -1,0 +1,4 @@
+example*/*
+!example*/src
+!example*/addons.make
+credentials.json
