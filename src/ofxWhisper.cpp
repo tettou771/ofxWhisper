@@ -84,6 +84,22 @@ void ofxWhisper::transcript(string file) {
     if (!isThreadRunning()) startThread();
 }
 
+void ofxWhisper::setPrompt(string _prompt) {
+    prompt = _prompt;
+}
+
+string ofxWhisper::getPrompt() {
+    return prompt;
+}
+
+void ofxWhisper::setLanguage(string _language) {
+    language = _language;
+}
+
+string ofxWhisper::getLanguage() {
+    return language;
+}
+
 void ofxWhisper::threadedFunction() {
     while (isThreadRunning()) {
         bool hasData = false;
@@ -119,7 +135,12 @@ void ofxWhisper::threadedFunction() {
             form.addHeaderField("Content-Type", "multipart/form-data");
             form.addFile("file", soundFilePath);
             form.addFormField("model", "whisper-1");
-
+            if (prompt != "") {
+                form.addFormField("prompt", prompt);
+            }
+            if (language != "") {
+                form.addFormField("language", language);
+            }
             ofxHttpResponse response = httpUtils.submitForm(form);
             
             auto errorCode = parseErrorResponse(response);

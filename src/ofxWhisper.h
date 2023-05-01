@@ -36,6 +36,17 @@ public:
     // Add audio file to audioQue
     void transcript(string file);
     
+    // Add prompt
+    void setPrompt(string _prompt);
+    
+    string getPrompt();
+    
+    // set Language ISO 639-1 code
+    // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    void setLanguage(string _language);
+    
+    string getLanguage();
+    
     // HTTP request thread
     void threadedFunction() override;
     
@@ -44,7 +55,7 @@ public:
     
     // Return num of transcripts
     int numTranscripts();
-
+        
     // Get oldest transcript and remove it
     string getNextTranscript();
     
@@ -79,6 +90,12 @@ private:
     
     // OpenAI key
     string apiKey;
+    
+    // prompt (send to Whidper with data)
+    string prompt;
+    
+    // language (send to Whisper with data)
+    string language;
     
     ofxHttpUtils httpUtils;
     
