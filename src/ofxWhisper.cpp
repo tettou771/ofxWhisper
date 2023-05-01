@@ -161,9 +161,6 @@ void ofxWhisper::threadedFunction() {
             } else {
                 ofLogError("ofxWhisper") << getErrorMessage(errorCode);
                 ofLogVerbose("ofxWhisper") << "Data: " << response.responseBody.getText();
-                transcriptMutex.lock();
-                transcripts.push_back("Error");
-                transcriptMutex.unlock();
             }
         } else {
             // thread end
