@@ -1,4 +1,8 @@
 example*/*
 !example*/src
 !example*/addons.make
-credentials.json
+!example*/bin
+example*/bin/*
+!example*/bin/data
+example*/bin/data/*
+!secret-example.json
