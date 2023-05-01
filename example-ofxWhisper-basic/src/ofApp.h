@@ -8,8 +8,8 @@ public:
     void setup();
     void update();
     void draw();
+    void dragEvent(ofDragInfo dragInfo);
 
     ofxWhisper whisper;
-    string transcript;
-    bool transcriptReady;
+    vector<string> transcripts;
 };

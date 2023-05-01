@@ -17,30 +17,30 @@ void ofApp::setup() {
     
     // Setup ofxWhisper with API key
     whisper.setup(apiKey);
-
-    // Load and transcribe the audio file
-    whisper.transcript("sample_speech.mp3");
-
-    transcriptReady = false;
 }
 
 void ofApp::update() {
     // Check if the transcript is ready
     if (whisper.hasTranscript()) {
-        transcript = whisper.getNextTranscript();
-        transcriptReady = true;
+        transcripts.push_back(whisper.getNextTranscript());
     }
 }
 
 void ofApp::draw() {
-    ofBackground(0);
-    ofSetColor(255);
+    ofSetColor(0, 220, 0);
+    ofDrawBitmapString("Drag and drop audio file here.\nCompatible files: m4a, mp3, mp4, mpeg, mpga, wav, webm. size < 25MB", 20, 40);
+    
+    int y = 80;
+    for (auto text : transcripts) {
+        ofSetColor(200);
+        ofDrawBitmapString(text, 20, y);
+        y+=16;
+    }
+}
 
-    if (transcriptReady) {
-        // Draw the transcript text on the screen
-        ofDrawBitmapString("Transcript:\n" + transcript, 20, 40);
-    } else {
-        // Draw "Waiting for transcript..." on the screen
-        ofDrawBitmapString("Waiting for transcript...", 20, 40);
+void ofApp::dragEvent(ofDragInfo dragInfo) {
+    for (auto file : dragInfo.files) {
+        // Load and transcribe the audio file
+        whisper.transcript(file);
     }
 }
