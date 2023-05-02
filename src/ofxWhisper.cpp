@@ -26,38 +26,21 @@ void ofxWhisper::setupRecorder(int _soundDeviceID) {
     ofxSoundUtils::printInputSoundDevices();
     
     auto inDevices = ofxSoundUtils::getInputSoundDevices();
-    auto outDevices = ofxSoundUtils::getOutputSoundDevices();
-    // IMPORTANT!!!
-    // The following line of code is where you set which audio interface to use.
-    // the index is the number printed in the console inside [ ] before the interface name
     
     size_t inDeviceIndex = _soundDeviceID;
-    size_t outDeviceIndex = 0;
     
     // Setup the sound stream.
     ofSoundStreamSettings settings;
     settings.bufferSize = 256;
     settings.numBuffers = 1;
-    settings.numInputChannels =  inDevices[inDeviceIndex].inputChannels;
-    settings.numOutputChannels = outDevices[outDeviceIndex].outputChannels;
+    settings.numInputChannels = inDevices[inDeviceIndex].inputChannels;
+    settings.numOutputChannels = inDevices[inDeviceIndex].inputChannels;
     settings.sampleRate = inDevices[inDeviceIndex].sampleRates[0];
     settings.setInDevice(inDevices[inDeviceIndex]);
-    settings.setOutDevice(outDevices[outDeviceIndex]);
+    settings.setInListener(this);
     
     stream.setup(settings);
-    
-    // link the sound stream with the ofxSoundObjects
-    input.setInputStream(stream);
-    output.setOutputStream(stream);
-    
-    //we will use a mixer right before the output, just to mute out the output and avoid the nasty feedback you get otherwise. This is kind of a hack and eventually it would be unnecesary. You can add add a GUI to the mixer if you want to. Look at the mixer example.
-    mixer.setMasterVolume(0);
-    
-    //Create objects signal chain.
-    //Currently you need to connect the recorder to the output, because of the pull-through audio architecture being used. Eventually this need would become unnecesary.
-    input.connectTo(wave).connectTo(recorder).connectTo(mixer).connectTo(output);
-
-    
+        
     // we register the recorder end event
     recordingEndListener = recorder.recordingEndEvent.newListener(this, &ofxWhisper::recordingEndCallback);
 }
@@ -196,6 +179,12 @@ string ofxWhisper::getNextTranscript() {
 
 bool ofxWhisper::isRecording() {
     return recording;
+}
+
+void ofxWhisper::audioIn(ofSoundBuffer &input) {
+    if (recorder.isRecording()) {
+        recorder.process(input, input);
+    }
 }
 
 // Helper function to parse the error response and return the appropriate error code.

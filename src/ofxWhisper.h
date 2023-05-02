@@ -4,7 +4,7 @@
 #include "waveformDraw.h"
 #include "ofxHttpUtils.h"
 
-class ofxWhisper : public ofThread {
+class ofxWhisper : public ofThread , public ofBaseSoundInput {
 public:
     ofxWhisper();
     ~ofxWhisper();
@@ -61,6 +61,9 @@ public:
     
     bool isRecording();
     
+    // audio handling
+    void audioIn(ofSoundBuffer &input) override;
+    
     // Helper function to parse the error response and return the appropriate error code.
     ErrorCode parseErrorResponse(const ofxHttpResponse& response);
     
@@ -68,11 +71,7 @@ public:
     static string getErrorMessage(ErrorCode errorCode);
     
 private:
-    waveformDraw wave;
-    ofxSoundInput input;
-    ofxSoundOutput output;
     ofSoundStream stream;
-    ofxSoundMixer mixer;
     ofxSoundRecorderObject recorder;
     
     ofEventListener recordingEndListener;
