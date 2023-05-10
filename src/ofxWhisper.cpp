@@ -22,9 +22,15 @@ void ofxWhisper::setup(string api_key) {
     }
 }
 
+void ofxWhisper::printSoundDevices() {
+    return ofxSoundUtils::printInputSoundDevices();
+}
+
+vector<ofSoundDevice> ofxWhisper::getSoundDevices() {
+    return ofxSoundUtils::getInputSoundDevices();
+}
+
 void ofxWhisper::setupRecorder(int _soundDeviceID) {
-    ofxSoundUtils::printInputSoundDevices();
-    
     auto inDevices = ofxSoundUtils::getInputSoundDevices();
     
     size_t inDeviceIndex = _soundDeviceID;

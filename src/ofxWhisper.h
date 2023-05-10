@@ -25,6 +25,13 @@ public:
 
     void setup(string api_key);
     
+    // Print devices
+    void printSoundDevices();
+    
+    // Get available sound devices
+    vector<ofSoundDevice> getSoundDevices();
+
+    // Set devide id
     void setupRecorder(int _soundDeviceID = 0);
     
     // Start recording with Device ID (default:0)
