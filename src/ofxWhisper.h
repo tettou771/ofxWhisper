@@ -1,8 +1,12 @@
 #pragma once
+
 #include "ofMain.h"
 #include "ofxSoundObjects.h"
 #include "waveformDraw.h"
 #include "ofxHttpUtils.h"
+#ifdef WIN32
+#include <fileapi.h>
+#endif
 
 class ofxWhisper : public ofThread , public ofBaseSoundInput {
 public:
@@ -106,4 +110,10 @@ private:
     ofxHttpUtils httpUtils;
     
     string getTempPath();
+
+#ifdef WIN32
+    static const ofSoundDevice::Api soundApi = ofSoundDevice::DEFAULT;
+#else
+    static const ofSoundDevice::Api soundApi = ofSoundDevice::DEFAULT;
+#endif
 };

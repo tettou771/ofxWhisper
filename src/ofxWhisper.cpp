@@ -23,26 +23,26 @@ void ofxWhisper::setup(string api_key) {
 }
 
 void ofxWhisper::printSoundDevices() {
-    return ofxSoundUtils::printInputSoundDevices();
+    stream.printDeviceList();
 }
 
 vector<ofSoundDevice> ofxWhisper::getSoundDevices() {
-    return ofxSoundUtils::getInputSoundDevices();
+    return stream.getDeviceList(soundApi);
 }
 
 void ofxWhisper::setupRecorder(int _soundDeviceID) {
-    auto inDevices = ofxSoundUtils::getInputSoundDevices();
+    auto devices = stream.getDeviceList(soundApi);
     
-    size_t inDeviceIndex = _soundDeviceID;
+    size_t deviceIndex = _soundDeviceID;
     
     // Setup the sound stream.
     ofSoundStreamSettings settings;
     settings.bufferSize = 256;
     settings.numBuffers = 1;
-    settings.numInputChannels = inDevices[inDeviceIndex].inputChannels;
-    settings.numOutputChannels = inDevices[inDeviceIndex].inputChannels;
-    settings.sampleRate = inDevices[inDeviceIndex].sampleRates[0];
-    settings.setInDevice(inDevices[inDeviceIndex]);
+    settings.numInputChannels = devices[deviceIndex].inputChannels;
+    settings.numOutputChannels = 0;
+    settings.sampleRate = devices[deviceIndex].sampleRates[0];
+    settings.setInDevice(devices[deviceIndex]);
     settings.setInListener(this);
     
     stream.setup(settings);
@@ -254,12 +254,22 @@ void ofxWhisper::recordingEndCallback(string &filePath) {
 }
 
 string ofxWhisper::getTempPath() {
+    string tempPath;
+#ifdef WIN32
+    TCHAR path[MAX_PATH];
+    if (GetTempPathA(MAX_PATH, path)) {
+        tempPath = path;
+    }
+    else {
+        ofLogError("Failed to get temporary path on Windows.");
+    }
+#else
    char tempPath[PATH_MAX];
-   size_t tempPathSize = confstr(_CS_DARWIN_USER_TEMP_DIR, tempPath, sizeof(tempPath));
+   size_t tempPathSize = confstr(_CS_DARWIN_USER_TEMP_DIR, tempPathMac, sizeof(tempPath));
    
    if (tempPathSize == 0 || tempPathSize > sizeof(tempPath)) {
        return "";
-   }
-   
+   }   
+#endif
    return ofToDataPath(string(tempPath) + "ofxWhisper/");
 }
