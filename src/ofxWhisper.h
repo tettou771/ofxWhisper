@@ -40,6 +40,24 @@ public:
     // Stop recording and add recordingBuffer to audioQue
     void stopRecording();
     
+    // Start realtime recording (recording continuously)
+    void startRealtimeRecording();
+    
+    // Stop realtime recording
+    void stopRealtimeRecording();
+    
+    // rrStartThresholdのgetterとsetter
+    float getRrStartThreshold() const;
+    void setRrStartThreshold(float value);
+
+    // rrEndThresholdのgetterとsetter
+    float getRrEndThreshold() const;
+    void setRrEndThreshold(float value);
+
+    // rrSilenceTimeMaxのgetterとsetter
+    float getRrSilenceTimeMax() const;
+    void setRrSilenceTimeMax(float value);
+    
     // Add audio file to audioQue
     void transcript(string file);
     
@@ -68,6 +86,8 @@ public:
     
     bool isRecording();
     
+    float getAudioLevel();
+    
     // audio handling
     void audioIn(ofSoundBuffer &input) override;
     
@@ -76,6 +96,13 @@ public:
     
     // Get the error message for a given error code.
     static string getErrorMessage(ErrorCode errorCode);
+    
+    // Audio Level Changed Event
+    struct AudioEventArgs {
+        float audioLevel;
+        bool isRecording;
+    };
+    ofEvent<AudioEventArgs> audioEvents;
     
 private:
     ofSoundStream stream;
@@ -92,7 +119,7 @@ private:
     
     ofMutex audioQueMutex, transcriptMutex;
     
-    bool recording;
+    bool recording, realtimeRecording;
     
     // OpenAI key
     string apiKey;
@@ -105,5 +132,15 @@ private:
     
     ofxHttpUtils httpUtils;
     
+    // Realtime recording parametors
+    float rrStartThreshold, rrEndThreshold, rrSilenceTimeMax;
+    uint32_t rrSilenceCoutMax, rrSilenceCount = 0;
+    
+    // realtime level. for audio visualizer
+    float audioLevel;
+    
     string getTempPath();
+    
+    static const int audioBufferHistoryMax = 10;
+    vector<ofSoundBuffer> audioBufferHistory;
 };

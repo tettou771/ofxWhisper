@@ -1,6 +1,10 @@
 #include "ofxWhisper.h"
 
-ofxWhisper::ofxWhisper() : recording(false) {}
+ofxWhisper::ofxWhisper() : recording(false), realtimeRecording(false), audioLevel(0) {
+    setRrStartThreshold(0.05);
+    setRrEndThreshold(0.03);
+    setRrSilenceTimeMax(1.0);
+}
 
 ofxWhisper::~ofxWhisper() {
     stopThread();
@@ -64,6 +68,48 @@ void ofxWhisper::stopRecording() {
         ofLogNotice("ofxWhisper") << "Stop recording";
         recorder.stopRecording();
     }
+}
+
+void ofxWhisper::startRealtimeRecording() {
+    if (realtimeRecording) return;
+    realtimeRecording = true;
+    ofLogNotice("ofxWhisper") << "Start Realtime Recording";
+    rrSilenceCount = 0;
+}
+
+void ofxWhisper::stopRealtimeRecording() {
+    if (!realtimeRecording) return;
+    if (recording) stopRecording();
+    realtimeRecording = false;
+    ofLogNotice("ofxWhisper") << "Stop Realtime Recording";
+}
+
+// rrStartThresholdのgetterとsetterの実装
+float ofxWhisper::getRrStartThreshold() const {
+    return rrStartThreshold;
+}
+
+void ofxWhisper::setRrStartThreshold(float value) {
+    rrStartThreshold = MIN(MAX(value, 0), 1.);
+}
+
+// rrEndThresholdのgetterとsetterの実装
+float ofxWhisper::getRrEndThreshold() const {
+    return rrEndThreshold;
+}
+
+void ofxWhisper::setRrEndThreshold(float value) {
+    rrEndThreshold = MIN(MAX(value, 0), 1.);
+}
+
+// rrSilenceTimeMaxのgetterとsetterの実装
+float ofxWhisper::getRrSilenceTimeMax() const {
+    return rrSilenceTimeMax;
+}
+
+void ofxWhisper::setRrSilenceTimeMax(float value) {
+    rrSilenceTimeMax = MAX(0, value);
+    rrSilenceCoutMax = rrSilenceTimeMax * stream.getSampleRate() / stream.getBufferSize();
 }
 
 void ofxWhisper::transcript(string file) {
@@ -187,10 +233,60 @@ bool ofxWhisper::isRecording() {
     return recording;
 }
 
+float ofxWhisper::getAudioLevel() {
+    return audioLevel;
+}
+
 void ofxWhisper::audioIn(ofSoundBuffer &input) {
+    // calc volume
+    audioLevel = 0;
+    for (auto &s : input.getBuffer()) {
+        audioLevel = MAX(audioLevel, abs(s));
+    }
+    
+    // realtime recording control
+    if (realtimeRecording) {
+        // Check start
+        if (!recorder.isRecording()) {
+            if (audioLevel >= rrStartThreshold) {
+                rrSilenceCount = 0;
+                startRecording();
+                
+                // append past buffer history
+                for (auto history : audioBufferHistory) {
+                    recorder.process(history, history);
+                }
+            }
+        }
+        
+        // Check end
+        else {
+            if (audioLevel < rrEndThreshold) {
+                rrSilenceCount++;
+                if (rrSilenceCount >= rrSilenceCoutMax) {
+                    stopRecording();
+                }
+            }
+            else {
+                rrSilenceCount = 0;
+            }
+        }
+    }
+    
     if (recorder.isRecording()) {
         recorder.process(input, input);
     }
+    
+    audioBufferHistory.push_back(input);
+    if (audioBufferHistory.size() >= audioBufferHistoryMax) {
+        audioBufferHistory.erase(audioBufferHistory.begin());
+    }
+    
+    // event
+    AudioEventArgs args;
+    args.audioLevel = audioLevel;
+    args.isRecording = isRecording();
+    ofNotifyEvent(audioEvents, args);
 }
 
 // Helper function to parse the error response and return the appropriate error code.

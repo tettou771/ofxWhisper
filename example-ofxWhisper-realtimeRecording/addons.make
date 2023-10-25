@@ -1,6 +1,6 @@
 ofxAudioFile
+ofxGui
 ofxHttpUtils
 ofxPoco
-ofxGui
 ofxSoundObjects
 ofxWhisper
