@@ -141,6 +141,10 @@ private:
     
     string getTempPath();
     
-    static const int audioBufferHistoryMax = 10;
+    static const int audioBufferHistoryMax = 20;
     vector<ofSoundBuffer> audioBufferHistory;
+    
+    // The audio file is not valid if valid buffer count less than threshold.
+    int validBfferCount;
+    const int validBfferCountThreshold = 20;
 };

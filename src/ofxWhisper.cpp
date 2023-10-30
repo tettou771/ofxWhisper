@@ -43,8 +43,8 @@ void ofxWhisper::setupRecorder(int _soundDeviceID) {
     ofSoundStreamSettings settings;
     settings.bufferSize = 256;
     settings.numBuffers = 1;
-    settings.numInputChannels = inDevices[inDeviceIndex].inputChannels;
-    settings.numOutputChannels = inDevices[inDeviceIndex].inputChannels;
+    settings.numInputChannels = MIN(2, inDevices[inDeviceIndex].inputChannels);
+    settings.numOutputChannels = MIN(2, inDevices[inDeviceIndex].outputChannels);
     settings.sampleRate = inDevices[inDeviceIndex].sampleRates[0];
     settings.setInDevice(inDevices[inDeviceIndex]);
     settings.setInListener(this);
@@ -60,6 +60,7 @@ void ofxWhisper::startRecording() {
         ofLogNotice("ofxWhisper") << "Start recording";
         recording = true;
         recorder.startRecording(getTempPath() + "recording_" + ofGetTimestampString() + ".wav", true);
+        validBfferCount = 0;
     }
 }
 
@@ -244,6 +245,9 @@ void ofxWhisper::audioIn(ofSoundBuffer &input) {
         audioLevel = MAX(audioLevel, abs(s));
     }
     
+    // increment valid count
+    if (audioLevel >= rrStartThreshold) validBfferCount++;
+    
     // realtime recording control
     if (realtimeRecording) {
         // Check start
@@ -345,7 +349,12 @@ string ofxWhisper::getErrorMessage(ofxWhisper::ErrorCode errorCode) {
 
 void ofxWhisper::recordingEndCallback(string &filePath) {
     ofLogNotice("ofxWhisper") << "Recording end. " << filePath;
-    transcript(filePath);
+    ofLogNotice("ofxWhisper") << "Count: " << validBfferCount;
+    if (validBfferCount >= validBfferCountThreshold) {
+        transcript(filePath);
+    }else{
+        ofLogWarning("ofxWhisper") << "The audio is too short to transcribe.";
+    }
     recording = false;
 }
 
